@@ -19,7 +19,7 @@ vmod_hello(struct sess *sp, const char *name)
 
 	u = WS_Reserve(sp->wrk->ws, 0); /* Reserve some work space */
 	p = sp->wrk->ws->f;		/* Front of workspace area */
-	v = snprintf(p, u, "Hello, %s", name);
+	v = snprintf(p, u, "Hello from 3scale vmod, %s", name);
 	v++;
 	if (v > u) {
 		/* No space, reset and leave */
