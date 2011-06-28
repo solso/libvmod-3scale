@@ -4,6 +4,7 @@ vmoddir = $(VMODDIR)
 vmod_LTLIBRARIES = libvmod_threescale.la
 
 libvmod_threescale_la_LDFLAGS = -module -export-dynamic -avoid-version
+libvmod_threescale_la_LIBADD = -lcurl
 
 libvmod_threescale_la_SOURCES = \
 	vcc_if.c \

@@ -1,3 +1,4 @@
 Module threescale
 Init init_function
 Function STRING hello(STRING)
+Function INT authrep()

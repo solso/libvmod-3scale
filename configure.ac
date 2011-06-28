@@ -1,6 +1,6 @@
 AC_PREREQ(2.59)
 AC_COPYRIGHT([Copyright (c) 2011 3scale])
-AC_INIT([libvmod-threescale], [trunk])
+AC_INIT([libvmod-threescale], [0.1])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(src/vmod_threescale.vcc)
 AM_CONFIG_HEADER(config.h)
@@ -31,6 +31,9 @@ AM_CONDITIONAL(HAVE_RST2MAN, [test "x$RST2MAN" != "xno"])
 
 # Check for pkg-config
 PKG_PROG_PKG_CONFIG
+
+# Check for curl
+PKG_CHECK_MODULES(CURL, libcurl)
 
 # Checks for header files.
 AC_HEADER_STDC
