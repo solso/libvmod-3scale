@@ -1,17 +1,17 @@
 INCLUDES = -I$(VARNISHSRC)/include -I$(VARNISHSRC)
 
 vmoddir = $(VMODDIR)
-vmod_LTLIBRARIES = libvmod_3scale.la
+vmod_LTLIBRARIES = libvmod_threescale.la
 
-libvmod_3scale_la_LDFLAGS = -module -export-dynamic -avoid-version
+libvmod_threescale_la_LDFLAGS = -module -export-dynamic -avoid-version
 
-libvmod_3scale_la_SOURCES = \
+libvmod_threescale_la_SOURCES = \
 	vcc_if.c \
 	vcc_if.h \
-	vmod_3scale.c
+	vmod_threescale.c
 
-vcc_if.c vcc_if.h: $(VARNISHSRC)/lib/libvmod_std/vmod.py $(top_srcdir)/src/vmod_3scale.vcc
-	@PYTHON@ $(VARNISHSRC)/lib/libvmod_std/vmod.py $(top_srcdir)/src/vmod_3scale.vcc
+vcc_if.c vcc_if.h: $(VARNISHSRC)/lib/libvmod_std/vmod.py $(top_srcdir)/src/vmod_threescale.vcc
+	@PYTHON@ $(VARNISHSRC)/lib/libvmod_std/vmod.py $(top_srcdir)/src/vmod_threescale.vcc
 
 VMOD_TESTS = tests/*.vtc
 .PHONY: $(VMOD_TESTS)
@@ -22,7 +22,7 @@ tests/*.vtc:
 check: $(VMOD_TESTS)
 
 EXTRA_DIST = \
-	vmod_3scale.vcc \
+	vmod_threescale.vcc \
 	$(VMOD_TESTS)
 
 CLEANFILES = $(builddir)/vcc_if.c $(builddir)/vcc_if.h
