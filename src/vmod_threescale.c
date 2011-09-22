@@ -1,86 +1,156 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <curl/curl.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "vrt.h"
 #include "bin/varnishd/cache.h"
 #include "vcc_if.h"
 
+struct request {
+  char* host;
+  char* path;
+  int port;
+};
 
-int
-init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
-{
-	return (0);
+
+int init_function(struct vmod_priv *priv, const struct VCL_conf *conf) {
+  return (0);
 }
 
-int
-vmod_authrep(struct sess *sp)
-{
 
-	CURL *curl;
-	CURLcode res;
-	int http_response_code;
-	int result = -5;
+char* get_ip(const char *host) {
 
-	char host[] = "http://localhost:3001";
-	char operation[] = "/transactions/authrep.xml";	
-	char provider_key[] = "provider-key";
-	char app_id[] = "app_id";
+  struct addrinfo hints, *res, *p;
+  int status;
+  int iplen = 15;
+  void *addr;
+  char *ipstr = (char *)malloc(iplen+1);
+  memset(ipstr, 0, iplen+1);
+  
+  memset(&hints, 0, sizeof hints);
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  
+  if( (status = getaddrinfo(host, NULL, &hints, &res) ) != 0) {
+    free(ipstr);
+    return NULL;
+  }
+    
+  struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
+  addr = &(ipv4->sin_addr);
 
-	const int hits = 1;
-	
-	// FIXME: this is retarded
-	char call[2048];
+  if (inet_ntop(res->ai_family, addr, ipstr, iplen+1) == NULL) {
+    free(ipstr);
+    freeaddrinfo(res);  
+    return NULL;
+  }
+  else {  
+    freeaddrinfo(res);
+    return ipstr;    
+  }
 
-	sprintf(call,"%s%s?%s=%s&%s=%s&%s=%d&%s",host,operation,"provider_key",provider_key,"app_id",app_id,"usage[hits]",hits,"no_body=true");
-	
-	curl = curl_easy_init();
-  	if(curl) 
-	{
-    		curl_easy_setopt(curl, CURLOPT_URL, call);
-    		res = curl_easy_perform(curl);		
-		curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_response_code);
-		curl_easy_cleanup(curl);
-
-		if (res==CURLE_OK) 
-		{
-			
-			if (http_response_code==200) {
-				result = 0;
-				// successful	
-			}
-			else {
-				result = -1;
-				// Transaction declined
-			}
-		}
-		else result = -2;
-		// connection error
-  	}
-	else result = -3;
-	// curl error
-
-	return result;
 
 }
 
 
-const char *
-vmod_hello(struct sess *sp, const char *name)
-{
-	char *p;
-	unsigned u, v;
 
-	u = WS_Reserve(sp->wrk->ws, 0); /* Reserve some work space */
-	p = sp->wrk->ws->f;		/* Front of workspace area */
-	v = snprintf(p, u, "Hello from 3scale vmod, %s", name);
-	v++;
-	if (v > u) {
-		/* No space, reset and leave */
-		WS_Release(sp->wrk->ws, 0);
-		return (NULL);
-	}
-	/* Update work space with what we've used */
-	WS_Release(sp->wrk->ws, v);
-	return (p);
+void* send_get_request(void* data) {
+
+  struct request *req = (struct request *)data; 
+  struct sockaddr_in *remote;
+  int sock;
+  int buffer_size = 32;
+  char* buffer = (char*)malloc(sizeof(char)*buffer_size);
+  int tmpres;
+
+  if (req->host==NULL) {
+    exit(-1);
+  }
+
+  char* ip = get_ip(req->host);
+  
+  if (ip==NULL) {
+    perror("livmod_3scale: could not resolve the ip");
+  }
+  else {
+    
+    char* template = "GET %s&varnish HTTP/1.1\r\nHost: %s\r\nConnection: Close\r\n\r\n";
+    char* srequest = (char*)malloc(sizeof(char)*((int)strlen(template)+(int)strlen(req->path)+(int)strlen(req->host)-3));
+
+    sprintf(srequest,template,req->path,req->host);
+
+    if((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) >= 0) {
+
+      remote = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in *));
+      remote->sin_family = AF_INET;
+      
+      inet_pton(AF_INET, ip, (void *)(&(remote->sin_addr.s_addr)));
+      remote->sin_port = htons(req->port);
+
+      if(connect(sock, (struct sockaddr *)remote, sizeof(struct sockaddr)) >= 0) {
+        int sent = 0;
+        while(sent < (int)strlen(srequest)) {
+          tmpres = send(sock, srequest+sent, (int)strlen(srequest)-sent, 0);
+          sent += tmpres;
+        }
+
+        recv(sock,buffer,buffer_size,0);
+
+      }
+      else {
+        perror("livmod_3scale: could not connect to socket");
+      }
+
+      free(remote);
+      close(sock);
+
+
+    }
+    else {
+      perror("livmod_3scale: could not obtain socket");
+    }
+
+    free(srequest);
+    free(ip);
+  
+  }
+
+  free(buffer);
+  free(req->path);
+  free(req->host);
+  free(req);
+
+  pthread_exit(NULL);
+
+ 
 }
+
+
+
+int vmod_request_no_response(struct sess *sp, const char* host, const char* port, const char* url) {
+
+  pthread_t tid;
+ 
+  int porti = 80;
+  if (port!=NULL && strcmp(port,"(null)")!=0) { 
+    porti = atoi(port);
+    if (porti<=0) porti=80;
+  }
+
+  struct request *req = (struct request*)malloc(sizeof(struct request));  
+  req->host = strdup(host);
+  req->path = strdup(url);
+  req->port = porti;
+
+  pthread_create(&tid, NULL, send_get_request,(void *)req);
+  pthread_detach(tid);
+  
+}
+
+
