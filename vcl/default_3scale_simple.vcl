@@ -55,7 +55,13 @@ sub vcl_hash {
 #backend on its own
 
 sub vcl_hit {
-	if (threescale.request_no_response("su1.3scale.net","80",req.url)==0) {}
+
+  if (req.url ~ "^/transactions/authrep.xml\?") {
+
+	  if (threescale.request_no_response("su1.3scale.net","80",req.url)==0) {}
+
+  }
+
 }
 
 
