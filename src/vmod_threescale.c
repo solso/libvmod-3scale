@@ -76,7 +76,7 @@ void* send_get_request(void* data) {
   char* ip = get_ip(req->host);
   
   if (ip==NULL) {
-    perror("livmod_3scale: could not resolve the ip");
+    perror("libvmod_3scale: could not resolve the ip");
   }
   else {
     
@@ -104,7 +104,7 @@ void* send_get_request(void* data) {
 
       }
       else {
-        perror("livmod_3scale: could not connect to socket");
+        perror("libvmod_3scale: could not connect to socket");
       }
 
       free(remote);
@@ -113,7 +113,7 @@ void* send_get_request(void* data) {
 
     }
     else {
-      perror("livmod_3scale: could not obtain socket");
+      perror("libvmod_3scale: could not obtain socket");
     }
 
     free(srequest);
