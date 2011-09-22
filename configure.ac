@@ -32,8 +32,11 @@ AM_CONDITIONAL(HAVE_RST2MAN, [test "x$RST2MAN" != "xno"])
 # Check for pkg-config
 PKG_PROG_PKG_CONFIG
 
-# Check for curl
-PKG_CHECK_MODULES(CURL, libcurl)
+# Check for curl 
+# PKG_CHECK_MODULES(CURL, libcurl)
+
+# Check for gcc_s
+# PKG_CHECK_MODULES(GCC_S, libgcc_s)
 
 # Checks for header files.
 AC_HEADER_STDC
