@@ -39,7 +39,7 @@
 <!--    
     README: This is the request against your varnish local cache. Put your own paramters: provider_key, usage, and app_id, app_key or user_key
 
-    <request> <http url="/transactions/authrep.xml?provider_key=3scale-5fc9d398ac038e4e8f212cc1e8cf01d2&amp;app_id=552740021&amp;usage[hits]=1" method="GET" version="1.1"></http> </request> 
+    <request> <http url="/transactions/authrep.xml?provider_key=3scale-5f491998ac038e4e8f212cc1e8cf01d2&amp;app_id=551150021&amp;usage[hits]=1" method="GET" version="1.1"></http> </request> 
 
 -->
 
