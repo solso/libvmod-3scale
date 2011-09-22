@@ -8,6 +8,7 @@ using the varnishtest tool.
 
 Usage:
 
+./autogen.sh
 ./configure VARNISHSRC=DIR [VMODDIR=DIR]
 
 VARNISHSRC is the directory of the Varnish source tree for which to

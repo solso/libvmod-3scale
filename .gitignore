@@ -23,7 +23,6 @@ Makefile.in
 /ltmain.sh
 /missing
 /stamp-h1
-/m4/
 /tmp/
 
 /src/vcc_if.c
