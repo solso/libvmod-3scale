@@ -7,11 +7,9 @@
 # you can define custom TTL via regular expresions
 #
  
-//  .*([&?]user_id.[^&]*).*([&?]object.[^&]*).*
-.*([&?]user_id.[^&]*).*
 
 backend default {
-	.host = "su1.3scale.net";     
+  .host = "su1.3scale.net";     
   .port = "80";
 }
 

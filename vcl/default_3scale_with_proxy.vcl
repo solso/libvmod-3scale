@@ -9,13 +9,13 @@
 
 ## the backend of your API
 backend backend_api {
-	.host = "YOUR_API_ENDPOINT";     
+  .host = "YOUR_API_ENDPOINT";     
   .port = "YOUR_API_ENDPOINT";
 }
 
 ## real 3scale backend
 backend backend_3scale {
-	.host = "su1.3scale.net";     
+  .host = "su1.3scale.net";     
   .port = "80";
 }
 
