@@ -24,7 +24,7 @@ import threescale;
 
 sub vcl_recv {
 
-	unset req.http.cookie;
+  unset req.http.cookie;
 
   if (!req.http.X-3scale-authorization) {
     ## this request was send by the end-user
@@ -115,15 +115,15 @@ sub vcl_recv {
 sub vcl_hash {
 
   if (req.http.X-3scale-authorization) {  
-	  ## remove no_body
-	  set req.http.X-url-tmp = regsub(req.url,"[&?]no_body.[^&]*","");
-	  ## remove object_id
-	  set req.http.X-url-tmp = regsub(req.http.X-url-tmp,"[&?]object.[^&]*","");
-	  ## remove object
-	  set req.http.X-url-tmp = regsub(req.http.X-url-tmp,"[&?]object_id.[^&]*","");
+    ## remove no_body
+    set req.http.X-url-tmp = regsub(req.url,"[&?]no_body.[^&]*","");
+    ## remove object_id
+    set req.http.X-url-tmp = regsub(req.http.X-url-tmp,"[&?]object.[^&]*","");
+    ## remove object
+    set req.http.X-url-tmp = regsub(req.http.X-url-tmp,"[&?]object_id.[^&]*","");
 
-	  hash_data(req.http.X-url-tmp);	
-	  unset req.http.X-url-tmp;
+    hash_data(req.http.X-url-tmp);	
+    unset req.http.X-url-tmp;
   }
   else {
     ## the default has of varnish for the end-user request, however we better remove the 
