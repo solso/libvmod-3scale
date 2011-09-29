@@ -1,6 +1,7 @@
 Module threescale
 Init init_function
 
-Function INT request_no_response(STRING, STRING, STRING)
+Function INT send_get_request_threaded(STRING, STRING, STRING, STRING)
+Function INT send_get_request(STRING, STRING, STRING, STRING)
 
 

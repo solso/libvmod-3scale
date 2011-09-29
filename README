@@ -26,16 +26,18 @@ make install - installs your vmod in VMODDIR
 
 if VMODDIR is not on the user space do 'sudo make install' instead
 
-In your VCL you could then use this vmod along the following lines:
+On your VCL configuration: 
 
 import threescale;
 
-sub vcl_hit {
-	if (threescale.request_no_response("su1.3scale.net","80",req.url)==0) {}
-}
+set req.http.X-tmp = threescale.send_get_request_threaded("su1.3scale.net","80",req.url,"");
+set req.http.X-tmp = threescale.send_get_request("su1.3scale.net","80",req.url,"X-ur-header: true;");
 
 It is recommended to use the configuration file provided in this
 package on vcl/default_3scale_simple.vcl, 
+
+Another example is vcl/default_3scale_with_proxy.vcl, which has an out-of-the-box proxy solution
+for your API 
 
 sudo mv /etc/varnish/default.vcl /etc/varnish/default.vcl.bkp
 sudo cp libmod-3scale/vcl/default_3scale_simple.vcl /etc/varnish/default.vcl
