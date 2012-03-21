@@ -4,7 +4,7 @@
 # backend. 
 # 
 # set the beresp.ttl in vcl_fetch to have a default global TTL
-# you can define custom TTL via regular expresions
+# you can define custom TTL via regular expressions
 #
 
 ## the backend of your API
@@ -30,7 +30,7 @@ sub vcl_recv {
     ## this request was send by the end-user
     set req.backend = backend_api;
 
-    ## need to generate the string for the 3sacle authorization,
+    ## need to generate the string for the 3scale authorization,
     set req.http.X-3scale-authrep = "/transactions/authrep.xml?provider_key=";
     ## set your 3scale provider_key
     ## set req.http.X-3scale-authrep = req.http.X-3scale-authrep + "YOUR_PROVIDER_KEY";
@@ -62,7 +62,7 @@ sub vcl_recv {
     unset req.http.X-3scale-user_id;
     unset req.http.X-3scale-user_key;
 
-    ## set the appropiate usage in a similar why than above, the basic one is...
+    ## set the appropriate usage in a similar why than above, the basic one is...
     set req.http.X-3scale-authrep = req.http.X-3scale-authrep + "&usage[hits]=1"; 
 
     ## now the additional paramters, for instance if you want to pass the url path 

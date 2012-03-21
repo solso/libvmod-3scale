@@ -207,6 +207,32 @@ int vmod_send_get_request(struct sess *sp, const char* host, const char* port, c
 
 }
 
+const char* vmod_send_get_request_body(struct sess *sp, const char* host, const char* port, const char* path, const char* header) {
+
+  int porti;
+  if (port!=NULL && strcmp(port,"(null)")!=0) { 
+    porti = atoi(port);
+    if (porti<=0) porti=80;
+  }
+
+  struct request *req = (struct request*)malloc(sizeof(struct request));  
+  req->host = strdup(host);
+  req->path = strdup(path);
+  req->header = strdup(header);
+  req->port = porti;
+
+  int http_response_code;
+  char* http_body = send_get_request(req, &http_response_code);
+
+  if (req->host!=NULL) free(req->host);
+  if (req->path!=NULL) free(req->path);
+  if (req->header!=NULL) free(req->header);
+  if (req!=NULL) free(req);
+
+  return http_body;
+
+}
+
 
 int vmod_send_get_request_threaded(struct sess *sp, const char* host, const char* port, const char* path, const char* header) {
 
@@ -230,12 +256,10 @@ int vmod_send_get_request_threaded(struct sess *sp, const char* host, const char
   return 0;
 }
 
+
 /*
 int main(int argc, char** argv) {
-
-  vmod_send_get_request(NULL,"localhost","3001","/transactions/authrep.xml?provider_key=3scale-5fc9d398ac038e4e8f212cc1e8cf01d2&app_id=552740021&usage[hits]=1","X-bullshit: true;");
-
-  vmod_send_get_request(NULL,"localhost","3001","/transactions/authrep.xml?provider_key=3scale-5fc9d398ac038e4e8f212cc1e8cf01d2&app_id=552740021&usage[hits]=1","");
-
+  //char* kk = vmod_send_get_request_body(NULL,"localhost","3001","/transactions/authrep.xml?provider_key=3scale-5fc9d398ac038e4e8f212cc1e8cf01d2&app_id=552740021&usage[hits]=1","X-bullshit: true;");
+  //vmod_send_get_request(NULL,"localhost","3001","/transactions/authrep.xml?provider_key=3scale-5fc9d398ac038e4e8f212cc1e8cf01d2&app_id=552740021&usage[hits]=1","");
 }
 */
