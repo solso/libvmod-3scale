@@ -71,7 +71,10 @@ int get_http_response_code(char* buffer, int buffer_len) {
       first_space = 1;
     }
     else {
-      if ((buffer[i]==32) && (first_space==1)) i=buffer_len;
+      if ((buffer[i]==32) && (first_space==1)) {
+				respcode[conti]='\0'
+				i=buffer_len;
+			}
       else {
         if (first_space==1) {
           respcode[conti]=buffer[i];
@@ -131,7 +134,7 @@ char* send_get_request(struct request* req, int* http_response_code) {
           sent += tmpres;
         }
 
-        // FIXME: this will only work for long response pages > 16KB (buffer_size)
+        // FIXME: this will fail for long response pages > 16KB (buffer_size)
         recv(sock, buffer, buffer_size, 0);
 
         (*http_response_code) = get_http_response_code(buffer,buffer_size);
