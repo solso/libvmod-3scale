@@ -72,7 +72,7 @@ int get_http_response_code(char* buffer, int buffer_len) {
     }
     else {
       if ((buffer[i]==32) && (first_space==1)) {
-				respcode[conti]='\0'
+				respcode[conti]='\0';
 				i=buffer_len;
 			}
       else {
