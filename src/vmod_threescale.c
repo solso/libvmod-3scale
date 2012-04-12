@@ -8,6 +8,8 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <errno.h>
+#include <ctype.h>
+
 
 #include "vrt.h"
 #include "bin/varnishd/cache.h"
@@ -16,7 +18,7 @@
 #define HTTP_GET 1
 #define HTTP_POST 2
 
-char *url_encode(char *str);
+char *url_encode(const char *str);
 
 struct request {
   char* host;
@@ -67,7 +69,7 @@ char* get_ip(const char *host) {
 
 }
 
-int get_http_response_code(char* buffer, int buffer_len) {
+int get_http_response_code(const char* buffer, int buffer_len) {
 
   int first_space=0;
   int conti=0;
@@ -236,8 +238,10 @@ char to_hex(char code) {
 
 /* Returns a url-encoded version of str */
 /* IMPORTANT: be sure to free() the returned string after use */
-char *url_encode(char *str) {
-  char *pstr = str, *buf = malloc(strlen(str) * 3 + 1), *pbuf = buf;
+char *url_encode(const char *str) {
+  const char *pstr = str;
+  char *buf = (char*)malloc(strlen(str) * 3 + 1);
+  char *pbuf = buf;
   while (*pstr) {
     if (isalnum(*pstr) || *pstr == '-' || *pstr == '_' || *pstr == '.' || *pstr == '~') 
       *pbuf++ = *pstr;
