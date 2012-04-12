@@ -7,9 +7,6 @@
 # you can define custom TTL via regular expressions
 #
 
-##varnishd -a :80 -T localhost:81 -f vcl/default_3scale_proxy_oauth.vcl -s malloc,10M -F
-##curl -v -g "localhost:80/word/hello?app_id=7f92ed8c" 
-
 ## the backend of your API
 backend backend_api {
   .host = "YOU API ENDPOINT, for instance api.mydomain.com"; 
