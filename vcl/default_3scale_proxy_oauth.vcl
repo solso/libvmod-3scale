@@ -7,12 +7,12 @@
 # you can define custom TTL via regular expressions
 #
 
-##varnishd -a :8080 -T localhost:8081 -f default_oauth.vcl -s malloc,10M -F
-##curl -v -g "localhost:8080/word/hello?app_id=7f92ed8c" 
+##varnishd -a :80 -T localhost:81 -f vcl/default_3scale_proxy_oauth.vcl -s malloc,10M -F
+##curl -v -g "localhost:80/word/hello?app_id=7f92ed8c" 
 
 ## the backend of your API
 backend backend_api {
-  .host = "helloworld.3scale.net";     
+  .host = "YOU API ENDPOINT, for instance api.mydomain.com"; 
   .port = "80";
 }
 
@@ -31,17 +31,17 @@ sub vcl_recv {
 
   if (!req.http.X-3scale-authorization) {
     ## this request was send by the end-user
-    set req.backend = backend_api;
+    ##set req.backend = backend_api;
 
     ## need to generate the string for the 3scale authorization,
     set req.http.X-3scale-auth = "/transactions/oauth_authorize.xml?provider_key=";
     ## set your 3scale provider_key
-    set req.http.X-3scale-auth = req.http.X-3scale-auth + "PROVIDER_KEY";
+    set req.http.X-3scale-auth = req.http.X-3scale-auth + "CHANGEME: YOUR 3SCALE PROVIDER_KEY";
     
     ## extract the parameters sent by the user
     set req.http.X-3scale-app_id = regsub(req.url,".*[&?]app_id.([^&]*).*","\1");
     
-    set req.http.X-3scale-auth = req.http.X-3scale-auth + + "&app_id=" + req.http.X-3scale-app_id;  
+    set req.http.X-3scale-auth = req.http.X-3scale-auth + "&app_id=" + req.http.X-3scale-app_id;  
     
     ## set the appropriate usage in a similar way than above, the basic one is...
     set req.http.X-3scale-auth = req.http.X-3scale-auth + "&usage[hits]=1";
@@ -49,52 +49,53 @@ sub vcl_recv {
     #set req.http.X-3scale-auth = req.http.X-3scale-auth + "&service_id=SERVICE_ID";
     
     ## build the request for the report
-    set req.http.X-3scale-report = "provider_key=" + "1sync-27393c4acb50317c15a6129fe46efe8c";
+    set req.http.X-3scale-report = "provider_key=" + "CHANGEME: YOUR 3SCALE PROVIDER_KEY";
     #set req.http.X-3scale-report = req.http.X-3scale-report + "&service_id=";
-    #set req.http.X-3scale-report = req.http.X-3scale-report + SERVICE_ID;
+    #set req.http.X-3scale-report = req.http.X-3scale-report + "CHANGEME: SERVICE_ID";
     set req.http.X-3scale-report = req.http.X-3scale-report + "&transactions[0][app_id]=";
     set req.http.X-3scale-report = req.http.X-3scale-report + req.http.X-3scale-app_id;
     
-    ## set the usage 
+    ## set the usage, you can specify the metric that you want
     set req.http.X-3scale-report = req.http.X-3scale-report + "&transactions[0][usage][hits]=1";
-    
     ## -----
     
     unset req.http.X-3scale-app_id;
     
-    set req.http.X-3scale-auth-res = threescale.send_get_request_body("localhost","8080",req.http.X-3scale-auth,"X-3scale-authorization: true;");
-    
+    set req.http.X-3scale-auth-res = threescale.send_get_request_body("localhost","CHANGEME: THE PORT THAT VARNISH IS LISTENING TO",req.http.X-3scale-auth,"X-3scale-authorization: true;");
+
     set req.http.X-3scale-auth-code = threescale.response_http_code(req.http.X-3scale-auth-res);
-    set req.http.X-3scale-auth-app_key = threescale.response_key(req.http.X-3scale-auth-res);
-    
-    ##std.log("key----");
-    ##std.log(req.http.X-3scale-auth-app_key);
-    
-    ##std.syslog(0,req.http.X-3scale-auth-app_key);
+
+    ## THE OAUTH SECRET FROM THE APPLICATION WILL BE SENT TO THE API BACKEND
+    set req.http.X-3scale-auth-secret = threescale.response_key(req.http.X-3scale-auth-res);
+
+    unset req.http.X-3scale-auth-res;
+    unset req.http.X-3scale-auth;
+
     
     if (req.http.X-3scale-auth-code == "200") {
       ## the request has been authorized, proceed as normal. Send always to the backend.
       ## because we always do a pass, no caching of the backend. 
-       
-      if (threescale.send_post_request_threaded("localhost","3001","/transactions.xml","",req.http.X-3scale-report)==0) {} 
-      ##if (threescale.send_post_request_threaded("su1.3scale.net","80","/transactions-1sync.xml","","")==0) {}
-       
+
+      unset req.http.X-3scale-auth-code;
+      if (threescale.send_post_request_threaded("su1.3scale.net","80","/transactions.xml","",req.http.X-3scale-report)==0) {} 
+      unset req.http.X-3scale-auth-report;
+
       return(pass);
     }
     else {
       ## the request from the users has not been authorized!! Returning an error
       ## FIXME: convert req.http.X-3scale-authrep-result; to int
+
+      unset req.http.X-3scale-auth-code;
       error 401;
     } 
-    
-    unset req.http.X-3scale-auth;
-    unset req.http.X-3scale-auth-code;
-    
+        
   }
   else {
     ## the request was not send by the end-user but by varnish itself
     set req.backend = backend_3scale;
     set req.http.host = "su1.3scale.net";
+    set req.grace = 5s;
 
     if (req.request != "GET" && req.request != "HEAD") {
       std.log("This should never happen!!");
@@ -164,7 +165,6 @@ sub vcl_hit {
 	    ##if (threescale.send_get_request_threaded("su1.3scale.net","80",req.url,"")==0) {}
     }
   }
-  
 
 }
 
@@ -173,6 +173,7 @@ sub vcl_fetch {
 
   if (req.http.X-3scale-authorization) {
     ## cache the authorization from 3scale
+    ## CHANGEME: below the TTL of the response of 3scale's backend
   	set beresp.ttl = 60s;
   }
   else {

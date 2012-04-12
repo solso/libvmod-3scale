@@ -144,12 +144,12 @@ char* send_request(struct request* req, int* http_response_code) {
 			if ((req->header==NULL) || (strlen(req->header)==0)) {
       	template = "POST %s HTTP/1.1\r\nHost: %s\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: %d\r\nConnection: Close\r\n\r\n%s";
       	srequest = (char*)malloc(sizeof(char)*((int)strlen(template)+(int)strlen(req->path)+(int)strlen(req->host)+body_len+body_len_len-7));
-      	sprintf(srequest,template,req->path,req->host,body_len_len,req->body);
+      	sprintf(srequest,template,req->path,req->host,body_len,req->body);
     	}
     	else {
       	template = "POST %s HTTP/1.1\r\nHost: %s\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: %d\r\n%s\r\nConnection: Close\r\n\r\n%s";
       	srequest = (char*)malloc(sizeof(char)*((int)strlen(template)+(int)strlen(req->path)+(int)strlen(req->host)+(int)strlen(req->header)+body_len+body_len_len-9));
-      	sprintf(srequest,template,req->path,req->host,body_len_len,req->header,req->body);
+      	sprintf(srequest,template,req->path,req->host,body_len,req->header,req->body);
     	}
 			
 		}
@@ -166,8 +166,6 @@ char* send_request(struct request* req, int* http_response_code) {
     	}
 		}
 		
-		perror(srequest);
-
     if((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) >= 0) {
 
       remote = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in *));
