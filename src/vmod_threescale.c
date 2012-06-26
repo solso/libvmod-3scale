@@ -376,6 +376,7 @@ int vmod_send_get_request_threaded(struct sess *sp, const char* host, const char
     struct request *req = (struct request*)malloc(sizeof(struct request));
     req->host = strdup(host);
     req->path = strdup(path);
+    req->body = NULL;
     if (header!=NULL) req->header = strdup(header);
     req->port = porti;
     req->http_verb = HTTP_GET;
