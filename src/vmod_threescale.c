@@ -50,6 +50,7 @@ char* get_ip(const char *host) {
 
     if( (status = getaddrinfo(host, NULL, &hints, &res) ) != 0) {
         free(ipstr);
+        ipstr = NULL;
         return NULL;
     }
 
@@ -58,11 +59,14 @@ char* get_ip(const char *host) {
 
     if (inet_ntop(res->ai_family, addr, ipstr, iplen+1) == NULL) {
         free(ipstr);
+        ipstr = NULL;
         freeaddrinfo(res);
+        res = NULL;
         return NULL;
     }
     else {
         freeaddrinfo(res);
+        res = NULL;
         return ipstr;
     }
 
@@ -194,6 +198,7 @@ char* send_request(struct request* req, int* http_response_code) {
             }
 
             free(remote);
+            remote = NULL;
             close(sock);
 
         }
@@ -202,7 +207,9 @@ char* send_request(struct request* req, int* http_response_code) {
         }
 
         free(srequest);
+        srequest = NULL;
         free(ip);
+        ip = NULL;
     }
 
     return buffer;
@@ -216,12 +223,18 @@ void* send_request_thread(void* data) {
 
     char* buffer = send_request(req,&http_response_code);
 
-    if (buffer!=NULL) free(buffer);
-    if (req->host!=NULL) free(req->host);
-    if (req->path!=NULL) free(req->path);
-    if (req->header!=NULL) free(req->header);
-    if (req->body!=NULL) free(req->body);
-    if (req!=NULL) free(req);
+    free(buffer);
+    buffer=NULL;
+    free(req->host);
+    req->host=NULL;
+    free(req->path);
+    req->path=NULL;
+    free(req->header);
+    req->header=NULL;
+    free(req->body);
+    req->body=NULL;
+    free(req);
+    req=NULL;
 
     pthread_exit(NULL);
 
@@ -303,11 +316,16 @@ int vmod_send_get_request(struct sess *sp, const char* host, const char* port, c
     int http_response_code;
     char* http_body = send_request(req,&http_response_code);
 
-    if (req->host!=NULL) free(req->host);
-    if (req->path!=NULL) free(req->path);
-    if (req->header!=NULL) free(req->header);
-    if (req!=NULL) free(req);
-    if (http_body!=NULL) free(http_body);
+    free(req->host);
+    req->host=NULL;
+    free(req->path);
+    req->path=NULL;
+    free(req->header);
+    req->header=NULL;
+    free(req);
+    req=NULL;
+    free(http_body);
+    http_body=NULL;
 
     return http_response_code;
 
@@ -331,10 +349,14 @@ const char* vmod_send_get_request_body(struct sess *sp, const char* host, const 
     int http_response_code;
     char* http_body = send_request(req, &http_response_code);
 
-    if (req->host!=NULL) free(req->host);
-    if (req->path!=NULL) free(req->path);
-    if (req->header!=NULL) free(req->header);
-    if (req!=NULL) free(req);
+    free(req->host);
+    req->host=NULL;
+    free(req->path);
+    req->path=NULL;
+    free(req->header);
+    req->header=NULL;
+    free(req);
+    req=NULL;
 
     return http_body;
 
