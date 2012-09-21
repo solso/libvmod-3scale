@@ -110,7 +110,7 @@ char* get_string_between_delimiters(const char* string, const char* left, const 
     ptrdiff_t len = end - beginning;
 
 		if (len<=0) return NULL;
-    char* out = malloc(len + 1);
+    char* out = (char *)calloc(len + 1, sizeof(char));
     strncpy(out, beginning, len);
 
     (out)[len] = 0;
@@ -123,7 +123,7 @@ char* send_request(struct request* req, int* http_response_code) {
   struct sockaddr_in *remote;
   int sock;
   int buffer_size = 16*1024;
-  char* buffer = (char*)malloc(sizeof(char)*buffer_size);
+  char* buffer = (char*)calloc(buffer_size,sizeof(char));
   int tmpres;
 
   char* ip = get_ip(req->host);
